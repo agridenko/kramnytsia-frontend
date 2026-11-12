@@ -113,14 +113,52 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Передаємо delivery_cost на бекенд
-      const response = await api.post('/orders/checkout/', {
+      // 1. Створюємо замовлення
+      const orderResponse = await api.post('/orders/checkout/', {
         delivery_cost: deliveryCost
       });
       
-      console.log('✅ Замовлення створено:', response.data);
+      const orderId = orderResponse.data.id;
+      console.log('✅ Замовлення створено, ID:', orderId);
+
+      // 2. Створюємо платіж — отримуємо data + signature
+      const paymentResponse = await api.post('/payments/create/', {
+        order_id: orderId
+      });
+
+      console.log('💳 Дані для оплати:', paymentResponse.data);
+
+      const { data, signature, checkout_url } = paymentResponse.data;
+
+      // 3. Очищаємо кошик
       await clearCart();
-      navigate('/success');
+
+      // 4. Формуємо POST-форму на LiqPay checkout
+      if (data && signature && checkout_url) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = checkout_url;
+        form.style.display = 'none';
+
+        const inputData = document.createElement('input');
+        inputData.type = 'hidden';
+        inputData.name = 'data';
+        inputData.value = data;
+
+        const inputSignature = document.createElement('input');
+        inputSignature.type = 'hidden';
+        inputSignature.name = 'signature';
+        inputSignature.value = signature;
+
+        form.appendChild(inputData);
+        form.appendChild(inputSignature);
+        document.body.appendChild(form);
+        form.submit(); // 🔥 Відправляємо на LiqPay!
+      } else {
+        setError('Не вдалося отримати дані для оплати. Перевір консоль.');
+        setLoading(false);
+      }
+
     } catch (err) {
       console.error('❌ ПОМИЛКА:', err);
       const errorData = err.response?.data;
@@ -130,11 +168,8 @@ const Checkout = () => {
           : JSON.stringify(errorData);
         setError(errorMsg);
       } else {
-        setError(err.response?.status === 401 
-          ? 'Сесія закінчилася. Увійдіть знову.' 
-          : 'Помилка при оформленні замовлення.');
+        setError('Помилка при оформленні замовлення.');
       }
-    } finally {
       setLoading(false);
     }
   };

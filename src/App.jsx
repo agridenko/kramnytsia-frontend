@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
 import Success from './pages/Success';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
@@ -77,6 +78,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
           </Routes>
         </CartProvider>
       </AuthProvider>
