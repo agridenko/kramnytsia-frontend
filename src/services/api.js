@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-console.log("🔌 API URL налаштовано як:", API_URL);
+//console.log("🔌 API URL налаштовано як:", API_URL);
 
 // Створюємо базовий екземпляр Axios
 const api = axios.create({

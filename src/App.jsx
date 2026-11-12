@@ -1,41 +1,57 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { useContext } from 'react';
+import { useContext } from 'react'; // <-- useContext ТОЛЬКО отсюда!
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { CartProvider, useCart } from './context/CartContext'; // <-- useCart отсюда
 import Login from './pages/Login';
+import Home from './pages/Home';
+import Catalog from './pages/Catalog';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
 import ProtectedRoute from './components/ProtectedRoute';
+import Checkout from './pages/Checkout';
+import Success from './pages/Success';
 
-// Проста головна сторінка
-const Home = () => {
+const Header = () => {
   const { user, logout } = useContext(AuthContext);
-  
+  const { totalItems } = useCart();
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-4xl font-bold text-blue-600 mb-4">🛒 Kramnytsia Frontend</h1>
-      {user ? (
-        <div>
-          <p className="text-green-600 text-xl mb-4">
-            Привіт, <span className="font-bold">{user.first_name} {user.last_name}</span>! 
-            <br />
-            <span className="text-sm text-gray-600">(Ваш email: {user.email})</span>
-          </p>
-          <button 
-            onClick={logout} 
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-          >
-            Вийти
-          </button>
-          <div className="mt-6">
-            <Link to="/cart" className="text-blue-600 hover:underline font-medium">
-              🛒 Перейти до Кошика (Захищений маршрут)
+    <nav className="bg-white shadow-sm p-4 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <Link to="/" className="text-2xl font-bold text-indigo-600">Kramnytsia</Link>
+        <div className="flex items-center gap-6">
+          <Link to="/catalog" className="text-gray-700 hover:text-indigo-600 font-medium">Каталог</Link>
+          
+          {user ? (
+            <>
+              <Link to="/cart" className="relative text-gray-700 hover:text-indigo-600 font-medium flex items-center gap-1">
+                🛒 Кошик
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 hidden sm:block">
+                  Привіт, {user.first_name || user.email}!
+                </span>
+                <button 
+                  onClick={logout} 
+                  className="text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition"
+                >
+                  Вийти
+                </button>
+              </div>
+            </>
+          ) : (
+            <Link to="/login" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+              Увійти
             </Link>
-          </div>
+          )}
         </div>
-      ) : (
-        <Link to="/login" className="text-blue-600 hover:underline text-xl font-medium">
-          Увійти в акаунт
-        </Link>
-      )}
-    </div>
+      </div>
+    </nav>
   );
 };
 
@@ -43,25 +59,26 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+        <CartProvider>
+          <Header />
           
-          {/* Приклад захищеного маршруту */}
-          <Route 
-            path="/cart" 
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                  <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">🛒 Ваш Кошик</h2>
-                    <p className="text-gray-600">Ця сторінка доступна тільки авторизованим користувачам!</p>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/catalog/:slug" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/success" element={<Success />} />
+            <Route 
+              path="/checkout" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </CartProvider>
       </AuthProvider>
     </Router>
   );
