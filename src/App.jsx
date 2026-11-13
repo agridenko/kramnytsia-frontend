@@ -1,16 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { useContext } from 'react'; // <-- useContext ТОЛЬКО отсюда!
+import { useContext } from 'react'; 
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { CartProvider, useCart } from './context/CartContext'; // <-- useCart отсюда
+import { CartProvider, useCart } from './context/CartContext'; 
+
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Catalog from './pages/Catalog';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
-import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
 import Success from './pages/Success';
 import PaymentSuccess from './pages/PaymentSuccess';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
@@ -33,10 +36,16 @@ const Header = () => {
                   </span>
                 )}
               </Link>
+              
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 hidden sm:block">
-                  Привіт, {user.first_name || user.email}!
-                </span>
+                {/* 🔥 ПОСИЛАННЯ НА ОСОБИСТИЙ КАБІНЕТ 🔥 */}
+                <Link 
+                  to="/profile" 
+                  className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:bg-indigo-50 px-2 py-1 rounded transition"
+                >
+                  👤 {user.first_name || 'Мій кабінет'}
+                </Link>
+
                 <button 
                   onClick={logout} 
                   className="text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-3 py-1 rounded hover:bg-red-50 transition"
@@ -66,6 +75,18 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* 🔥 ЗАХИЩЕНИЙ МАРШРУТ ДЛЯ ПРОФІЛЮ 🔥 */}
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/catalog/:slug" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
